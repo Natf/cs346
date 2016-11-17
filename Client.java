@@ -1,64 +1,52 @@
 import java.io.*;
 import java.net.*;
+import java.util.Scanner;
 
-
-public class Server
+public class Client
 {
-    private ServerSocket serverSocket;
+    private Socket socket;
     private String serverAddress;
     private int serverPort;
-    private BufferedReader clientIn;
+    private Scanner scanner;
 
-    public Server() throws IOException
+    public Client()
     {
         try {
             loadConfig();
+            socket = new Socket();
+            socket.connect(new InetSocketAddress(serverAddress, serverPort));
         } catch (Exception e) {
             System.out.println(e);
             System.out.println("File reading error");
             System.out.println("Make sure addresses are in correct format");
         }
 
-        System.out.println("Initialising server on " + this.serverAddress + ":" + this.serverPort);
-        this.serverSocket = new ServerSocket(this.serverPort, 10, InetAddress.getByName(this.serverAddress));
+        this.scanner = new Scanner(System.in);
     }
 
-
-    public static void main(String[] args) throws IOException
+    public static void main(String args[]) throws IOException, SocketException
     {
-        Server server = new Server();
-        server.connectClient();
-        server.read();
-        server.close();
+        Client client = new Client();
+        client.request();
+        client.close();
     }
 
-    private void connectClient() throws IOException, SocketException
+    public void request() throws IOException, SocketException
     {
-        System.out.println("Waiting on client");
-        Socket client = serverSocket.accept();
-        System.out.println("Client connected");
-
-        //Setup streams
-        clientIn = new BufferedReader(new InputStreamReader(client.getInputStream()));
+        System.out.println("What are we sending to the server?");
+        String words = scanner.nextLine();
+//        out.println(words);
     }
 
-    private void read() throws IOException, SocketException
+    public void close() throws IOException, SocketException
     {
-        String words = clientIn.readLine();
-        System.out.println("Have read in from the client: ");
-        System.out.println(words);
-    }
-
-    private void close() throws IOException, SocketException
-    {
-        System.out.println("Closing server");
-        serverSocket.close();
-        clientIn.close();
+        System.out.println("Closing the client");
+        socket.close();
     }
 
     private void loadConfig() throws FileNotFoundException, IOException
     {
-        loadConfig("config");
+        loadConfig("clientConfig");
     }
 
     private void loadConfig(String name) throws FileNotFoundException, IOException

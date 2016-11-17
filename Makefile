@@ -11,6 +11,7 @@ JC = javac
 
 CLASSES = \
 		Server.java \
+		Client.java \
 
 default: classes
 
