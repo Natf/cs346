@@ -9,8 +9,9 @@ public class Server
     private int serverPort;
     private BufferedReader clientIn;
 
-    public Server() throws IOException
+    public Server(int serverPort) throws IOException
     {
+        this.serverPort = serverPort;
         try {
             loadConfig();
         } catch (Exception e) {
@@ -21,15 +22,6 @@ public class Server
 
         System.out.println("Initialising server on " + this.serverAddress + ":" + this.serverPort);
         this.serverSocket = new ServerSocket(this.serverPort, 10, InetAddress.getByName(this.serverAddress));
-    }
-
-
-    public static void main(String[] args) throws IOException
-    {
-        Server server = new Server();
-        server.connectClient();
-        server.read();
-        server.close();
     }
 
     private void connectClient() throws IOException, SocketException
@@ -49,7 +41,7 @@ public class Server
         System.out.println(words);
     }
 
-    private void close() throws IOException, SocketException
+    public void close() throws IOException, SocketException
     {
         System.out.println("Closing server");
         serverSocket.close();
@@ -73,9 +65,6 @@ public class Server
             switch (parsedLine[0]) {
                 case "hostname":
                     this.serverAddress = parsedLine[2];
-                    break;
-                case "port":
-                    this.serverPort = Integer.parseInt(parsedLine[2]);
                     break;
             }
         }

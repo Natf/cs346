@@ -46,7 +46,7 @@ public class Client
 
     private void loadConfig() throws FileNotFoundException, IOException
     {
-        loadConfig("clientConfig");
+        loadConfig("config");
     }
 
     private void loadConfig(String name) throws FileNotFoundException, IOException
