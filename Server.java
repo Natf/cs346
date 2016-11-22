@@ -6,12 +6,14 @@ public class Server
 {
     private ServerSocket serverSocket;
     private String serverAddress;
+    private static final int startingServerPort = 9030;
     private int serverPort;
-    private BufferedReader clientIn;
+    private int serverId;
 
-    public Server(int serverPort) throws IOException
+    public Server(int serverId) throws IOException
     {
-        this.serverPort = serverPort;
+        this.serverId = serverId;
+        this.serverPort = startingServerPort + serverId;
         try {
             loadConfig();
         } catch (Exception e) {
@@ -24,28 +26,10 @@ public class Server
         this.serverSocket = new ServerSocket(this.serverPort, 10, InetAddress.getByName(this.serverAddress));
     }
 
-    private void connectClient() throws IOException, SocketException
-    {
-        System.out.println("Waiting on client");
-        Socket client = serverSocket.accept();
-        System.out.println("Client connected");
-
-        //Setup streams
-        clientIn = new BufferedReader(new InputStreamReader(client.getInputStream()));
-    }
-
-    private void read() throws IOException, SocketException
-    {
-        String words = clientIn.readLine();
-        System.out.println("Have read in from the client: ");
-        System.out.println(words);
-    }
-
     public void close() throws IOException, SocketException
     {
         System.out.println("Closing server");
         serverSocket.close();
-        clientIn.close();
     }
 
     private void loadConfig() throws FileNotFoundException, IOException

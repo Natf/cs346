@@ -11,7 +11,6 @@ JC = javac
 
 CLASSES = \
 		Server.java \
-		Client.java \
 		RunProject.java \
 
 default: classes
