@@ -4,26 +4,24 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RunProject
 {
+    private static final Scanner in = new Scanner(System.in);
     private static Server[] servers;
     private static Map<String, FileSuite> fileSuites = new LinkedHashMap<>();
     private static ArrayList<String> instructions;
-    private static int serverCount;
+    private static int rValue;
+    private static int wValue;
 
     public static void main(String[] args) throws IOException
     {
         if (args.length > 0 ) {
-            servers = new Server[Integer.parseInt(args[0])];
-            serverCount = Integer.parseInt(args[0]);
-
-            for (int i = 0; i < serverCount; i++) {
-                System.out.println("Starting server " + (i+1) +" of " + args[0]);
-                servers[i] = new Server(9030+i);
-            }
+            setRWValues();
+            startServers(Integer.parseInt(args[0]));
         } else {
             String[] noServers = {"4"};
             main(noServers);
@@ -44,34 +42,29 @@ public class RunProject
         }
     }
 
+    private static void startServers(int serverCount) throws IOException {
+        servers = new Server[serverCount];
+
+        for (int i = 0; i < serverCount; i++) {
+            System.out.println("Starting server " + (i+1) +" of " + serverCount);
+            servers[i] = new Server(9030+i, serverCount, rValue, wValue);
+        }
+    }
+
+    private static void setRWValues() {
+        System.out.print("Please enter a value for Qr:");
+        rValue = Integer.parseInt(in.nextLine());
+        System.out.print("Please enter a value for Qw:");
+        wValue = Integer.parseInt(in.nextLine());
+    }
+
     private static String doTransaction(String instruction) {
         ArrayList<String> transaction = parseTransaction(instruction);
         int serverNoCharacterBeginIndex = transaction.get(0).indexOf(",") + 1;
         int serverNoCharacterEndIndex = transaction.get(0).indexOf("]");
         int serverNo = Integer.parseInt(transaction.get(0).substring(serverNoCharacterBeginIndex, serverNoCharacterEndIndex));
-        String data = "";
-        String read = "";
 
-        for (int i = 1; i < transaction.size(); i ++) {
-            if(transaction.get(i).contains("Write")) {
-                String fileId = transaction.get(i).substring(transaction.get(i).indexOf("(") + 1, transaction.get(i).indexOf(")"));
-                if (!fileSuites.containsKey(fileId)) {
-                    fileSuites.put(fileId, new FileSuite(serverCount));
-                }
-                servers[serverNo].write(fileSuites.get(fileId), data, transaction.get(i));
-            } else if(transaction.get(i).contains("Read")) {
-                String fileId = transaction.get(i).substring(transaction.get(i).indexOf("(") + 1, transaction.get(i).indexOf(")"));
-                if (!fileSuites.containsKey(fileId)) {
-                    fileSuites.put(fileId, new FileSuite(serverCount));
-                }
-                read += servers[serverNo].read(fileSuites.get(fileId));
-                System.out.println("read: " + read);
-            } else {
-                data += transaction.get(i);
-            }
-        }
-
-        return read;
+        return servers[serverNo].doTransaction(fileSuites, transaction);
     }
 
     private static ArrayList<String> parseTransaction(String instruction) {

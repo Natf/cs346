@@ -5,16 +5,24 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.SocketException;
-
+import java.util.ArrayList;
+import java.util.Map;
 
 public class Server
 {
     private ServerSocket serverSocket;
     private String serverAddress;
-    private String serverFolder;
+    private String serverLog;
+    private int serverCount;
+    private int rValue;
+    private int wValue;
 
-    public Server(int serverPort) throws IOException
+    public Server(int serverPort, int serverCount, int rValue, int wValue) throws IOException
     {
+        this.rValue = rValue;
+        this.wValue = wValue;
+        this.serverCount = serverCount;
+
         try {
             loadConfig();
         } catch (Exception e) {
@@ -58,13 +66,38 @@ public class Server
         bufferedReader.close();
     }
 
-    public String read(FileSuite fileSuite) {
-        return fileSuite.read();
+    public String doTransaction(Map<String, FileSuite> fileSuites, ArrayList<String> transaction) {
+        String read = "";
+        String data = "";
+
+        for (int i = 1; i < transaction.size(); i ++) {
+            if(transaction.get(i).contains("Write")) {
+                String fileId = transaction.get(i).substring(transaction.get(i).indexOf("(") + 1, transaction.get(i).indexOf(")"));
+                write(fileSuites, fileId, data, transaction.get(i));
+            } else if(transaction.get(i).contains("Read")) {
+                String fileId = transaction.get(i).substring(transaction.get(i).indexOf("(") + 1, transaction.get(i).indexOf(")"));
+                read += read(fileSuites, fileId);
+                System.out.println("read: " + read);
+            } else {
+                data += transaction.get(i);
+            }
+        }
+        return read;
     }
 
-    public void write(FileSuite fileSuite, String data, String transaction) {
+    public String read(Map<String, FileSuite> fileSuites, String fileId) {
+        if (!fileSuites.containsKey(fileId)) {
+            fileSuites.put(fileId, new FileSuite(serverCount, rValue, wValue));
+        }
+        return fileSuites.get(fileId).read();
+    }
+
+    public void write(Map<String, FileSuite> fileSuites, String fileId, String data, String transaction) {
+        if (!fileSuites.containsKey(fileId)) {
+            fileSuites.put(fileId, new FileSuite(serverCount, rValue, wValue));
+        }
         String variable = transaction.substring(transaction.indexOf("(") + 1, transaction.indexOf(")")).trim();
         String value = data.substring(data.indexOf(variable) + variable.length() + 2).trim();
-        fileSuite.write(value);
+        fileSuites.get(fileId).write(value);
     }
 }

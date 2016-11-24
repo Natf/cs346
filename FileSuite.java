@@ -3,46 +3,44 @@ import java.util.Arrays;
 
 public class FileSuite
 {
-    private String suiteName;
-    private int versionNumber;
-    private boolean[] type;
-    private SuiteEntry[] suite;
-    private boolean firstResponded;
+    private SuiteEntry[] suites;
     private int rValue;
     private int wValue;
 
-    public FileSuite(int serverCount) {
-        suite = new SuiteEntry[serverCount];
+    public FileSuite(int serverCount, int rValue, int wValue) {
+        this.rValue = rValue;
+        this.wValue = wValue;
+
+        suites = new SuiteEntry[serverCount];
         for (int i = 0; i < serverCount; i++) {
-            suite[i] = new SuiteEntry();
+            suites[i] = new SuiteEntry();
         }
     }
 
     public ArrayList<SuiteEntry> collectReadQuorum() {
         // until the first representative responds we don't have a seed for the voting rules
 //        while (boolean firstResponded = true) { crowdLarger(); }
-        return collectWriteQuorum();
 
-//        SuiteEntry[] index = suite;
-//        ArrayList<SuiteEntry> quorum = new ArrayList<>();
-//        int votes = 0;
-//
-//        while (true) {
-//            for(int i = 0; i < index.length; i++) {
-//                if (index[i].isVersionKnown()) {
-//                    quorum.add(index[i]);
-//                    votes += index[i].getVotes();
-//                    if (votes > rValue) {
-//                        return quorum;
-//                    }
-//                }
-//            }
-//        }
+        SuiteEntry[] index = suites;
+        ArrayList<SuiteEntry> quorum = new ArrayList<>();
+        int votes = 0;
+
+        while (true) {
+            for(int i = 0; i < index.length; i++) {
+                if (index[i].isVersionKnown()) {
+                    quorum.add(index[i]);
+                    votes += index[i].getVotes();
+                    if (votes > rValue) {
+                        return quorum;
+                    }
+                }
+            }
+        }
     }
 
     public ArrayList<SuiteEntry> collectWriteQuorum() {
         ArrayList<SuiteEntry> list = new ArrayList<>();
-        list.addAll(Arrays.asList(suite));
+        list.addAll(Arrays.asList(suites));
         return list;
     }
 

@@ -1,7 +1,7 @@
 public class SuiteEntry
 {
     private int version = 0;
-    private boolean versionKnown = false;
+    private boolean versionKnown = true;
     private int votes = 0;
     private String data = "";
 
