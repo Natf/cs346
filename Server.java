@@ -1,19 +1,20 @@
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.SocketException;
 
 
 public class Server
 {
     private ServerSocket serverSocket;
     private String serverAddress;
-    private static final int startingServerPort = 9030;
-    private int serverPort;
-    private int serverId;
+    private String serverFolder;
 
-    public Server(int serverId) throws IOException
+    public Server(int serverPort) throws IOException
     {
-        this.serverId = serverId;
-        this.serverPort = startingServerPort + serverId;
         try {
             loadConfig();
         } catch (Exception e) {
@@ -22,8 +23,8 @@ public class Server
             System.out.println("Make sure addresses are in correct format");
         }
 
-        System.out.println("Initialising server on " + this.serverAddress + ":" + this.serverPort);
-        this.serverSocket = new ServerSocket(this.serverPort, 10, InetAddress.getByName(this.serverAddress));
+        System.out.println("Initialising server on " + this.serverAddress + ":" + serverPort);
+        this.serverSocket = new ServerSocket(serverPort, 10, InetAddress.getByName(this.serverAddress));
     }
 
     public void close() throws IOException, SocketException
@@ -55,5 +56,15 @@ public class Server
 
         //close the file
         bufferedReader.close();
+    }
+
+    public String read(FileSuite fileSuite) {
+        return fileSuite.read();
+    }
+
+    public void write(FileSuite fileSuite, String data, String transaction) {
+        String variable = transaction.substring(transaction.indexOf("(") + 1, transaction.indexOf(")")).trim();
+        String value = data.substring(data.indexOf(variable) + variable.length() + 2).trim();
+        fileSuite.write(value);
     }
 }
