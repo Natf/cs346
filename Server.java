@@ -7,6 +7,8 @@ import java.net.ServerSocket;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Server
 {
@@ -64,6 +66,29 @@ public class Server
 
         //close the file
         bufferedReader.close();
+    }
+
+    public void sendTransactions(Map<String, FileSuite> fileSuites, ArrayList<String> transactions) {
+        for(String transaction : transactions) {
+            doTransaction(fileSuites, parseTransaction(transaction));
+        }
+    }
+
+    private static ArrayList<String> parseTransaction(String instruction) {
+        ArrayList<String> transaction = new ArrayList<>();
+        Pattern regex = Pattern.compile("(\\[([0-9]|,)*\\])");
+        Matcher matcher = regex.matcher(instruction);
+
+        if (matcher.find()) {
+            transaction.add(matcher.group(0));
+        }
+
+        instruction = instruction.substring(instruction.indexOf(":")+1);
+        int i = 0;
+        for (String[] steps = instruction.split(";"); i < steps.length; i++) {
+            transaction.add(steps[i].trim());
+        }
+        return transaction;
     }
 
     public String doTransaction(Map<String, FileSuite> fileSuites, ArrayList<String> transaction) {

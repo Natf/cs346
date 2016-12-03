@@ -1,9 +1,9 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class FileSuite
 {
     private SuiteEntry[] suites;
+    private int currentVersion = 1;
     private int rValue;
     private int wValue;
 
@@ -18,9 +18,6 @@ public class FileSuite
     }
 
     public ArrayList<SuiteEntry> collectReadQuorum() {
-        // until the first representative responds we don't have a seed for the voting rules
-//        while (boolean firstResponded = true) { crowdLarger(); }
-
         SuiteEntry[] index = suites;
         ArrayList<SuiteEntry> quorum = new ArrayList<>();
         int votes = 0;
@@ -39,21 +36,37 @@ public class FileSuite
     }
 
     public ArrayList<SuiteEntry> collectWriteQuorum() {
-        ArrayList<SuiteEntry> list = new ArrayList<>();
-        list.addAll(Arrays.asList(suites));
-        return list;
+        while (true) {
+            ArrayList<SuiteEntry> list = new ArrayList<>();
+            int readVotes = 0;
+            for (SuiteEntry suite : suites) {
+                if (suite.isVersionKnown()) {
+                    readVotes += suite.getVotes();
+                    if (suite.getVersionNo() == currentVersion) {
+                        list.add(suite);
+                        if (readVotes >= wValue) {
+                            currentVersion++;
+                            return list;
+                        }
+                    }
+                }
+            }
+            if (readVotes > rValue) {
+                for (SuiteEntry suite : suites) {
+                    if (suite.getVersionNo() != currentVersion) {
+                        suite.setVersionKnown(false);
+                        // do copy
+                    }
+                }
+            }
+        }
     }
 
     public void write(String data) {
         ArrayList<SuiteEntry> quorum = collectWriteQuorum();
 
         for (int i = 0; i < quorum.size(); i++) {
-            final int quorumId = i;
-            new Thread(new Runnable() {
-                public void run() {
-                    quorum.get(quorumId).write(data); // not sure where this is found
-                }
-            }).start();
+            quorum.get(i).write(data); // not sure where this is found
         }
     }
 

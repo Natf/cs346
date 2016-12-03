@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class RunProject
 {
@@ -14,6 +12,7 @@ public class RunProject
     private static Server[] servers;
     private static Map<String, FileSuite> fileSuites = new LinkedHashMap<>();
     private static ArrayList<String> instructions;
+    private static ArrayList<String>[] serverInstructions;
     private static int rValue;
     private static int wValue;
 
@@ -35,10 +34,17 @@ public class RunProject
         }
 
         System.out.println(instructions);
+        System.out.println(servers.length);
 
-        for(int i = 0; i < instructions.size(); i++) {
-            System.out.println("carrying out transaction: " + i);
-            doTransaction(instructions.get(i));
+        for(int i = 0; i < servers.length; i++) {
+            System.out.println("sending transactions to server " + i);
+            final int server = i;
+            Thread thread = new Thread() {
+                public void run() {
+                    servers[server].sendTransactions(fileSuites, serverInstructions[server]);
+                }
+            };
+            thread.start();
         }
     }
 
@@ -58,38 +64,22 @@ public class RunProject
         wValue = Integer.parseInt(in.nextLine());
     }
 
-    private static String doTransaction(String instruction) {
-        ArrayList<String> transaction = parseTransaction(instruction);
-        int serverNoCharacterBeginIndex = transaction.get(0).indexOf(",") + 1;
-        int serverNoCharacterEndIndex = transaction.get(0).indexOf("]");
-        int serverNo = Integer.parseInt(transaction.get(0).substring(serverNoCharacterBeginIndex, serverNoCharacterEndIndex));
-
-        return servers[serverNo].doTransaction(fileSuites, transaction);
-    }
-
-    private static ArrayList<String> parseTransaction(String instruction) {
-        ArrayList<String> transaction = new ArrayList<>();
-        Pattern regex = Pattern.compile("(\\[([0-9]|,)*\\])");
-        Matcher matcher = regex.matcher(instruction);
-
-        if (matcher.find()) {
-            transaction.add(matcher.group(0));
-        }
-
-        instruction = instruction.substring(instruction.indexOf(":")+1);
-        int i = 0;
-        for (String[] steps = instruction.split(";"); i < steps.length; i++) {
-            transaction.add(steps[i].trim());
-        }
-        return transaction;
-    }
-
     private static void loadTransactions() throws IOException {
         instructions = new ArrayList<>();
         BufferedReader reader = new BufferedReader(new FileReader("trans.txt"));
 
         for (String instruction = reader.readLine(); instruction != null; instruction = reader.readLine()) {
             instructions.add(instruction);
+        }
+
+        serverInstructions = new ArrayList[servers.length];
+        for(int i = 0; i < servers.length; i++) {
+            serverInstructions[i] = new ArrayList<>();
+        }
+
+        for (String instruction : instructions) {
+            int site = Integer.parseInt(instruction.substring(instruction.indexOf(',') + 1, instruction.indexOf(']'))) - 1;
+            serverInstructions[site].add(instruction);
         }
     }
 }

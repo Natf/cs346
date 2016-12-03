@@ -12,6 +12,8 @@ JC = javac
 CLASSES = \
 		Server.java \
 		RunProject.java \
+		SuiteEntry.java \
+		FileSuite.java \
 
 default: classes
 

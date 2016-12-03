@@ -1,12 +1,5 @@
-when loading transactions load them into array in order they should be processed and id them with what site they should run on e.g.
- [
- transaction 1 => {server 1}
- transaction 2 => {server 3}
- transaction 3 => {server 1}
- ]
 log files for server when processing transaction
 writing to file for data
-seperate logic for processing transcation so each server can run asynchronously
 testing
 presentation
 report
