@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.io.File;
 
 public class RunProject
 {
@@ -81,6 +82,7 @@ public class RunProject
 
         for (int i = 0; i < serverCount; i++) {
             System.out.println("Starting server " + (i+1) +" of " + serverCount);
+            new File("./" + (9030+i) +"/").mkdirs();
             servers[i] = new Server(9030+i, serverCount, rValue, wValue);
         }
     }
