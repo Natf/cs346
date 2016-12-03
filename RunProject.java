@@ -37,21 +37,25 @@ public class RunProject
         for(int i = 0; i < instructions.size(); i++) {
             ArrayList<String> transaction = parseTransaction(instructions.get(i));
             final int server = Integer.parseInt(transaction.get(0).substring(transaction.get(0).indexOf(",") + 1, transaction.get(0).indexOf("]"))) -1;
-            if(instructions.get(i).contains("Write")) {
-                String fileId = instructions.get(i).substring(instructions.get(i).indexOf("Write"));
-                fileId = fileId.substring(fileId.indexOf("(") + 1, fileId.indexOf(")")).trim();
-                if (!fileSuites.containsKey(fileId)) {
-                    fileSuites.put(fileId, new FileSuite(fileId, servers.length, rValue, wValue));
-                }
-                while(fileSuites.get(fileId).isLocked()) {}
-                fileSuites.get(fileId).setLocked(true);
-            }
+            blockWhileLocked(instructions.get(i));
             Thread thread = new Thread() {
                 public void run() {
                     servers[server].doTransaction(fileSuites, transaction);
                 }
             };
             thread.start();
+        }
+    }
+
+    private static void blockWhileLocked(String instruction) {
+        if(instruction.contains("Write")) {
+            String fileId = instruction.substring(instruction.indexOf("Write"));
+            fileId = fileId.substring(fileId.indexOf("(") + 1, fileId.indexOf(")")).trim();
+            if (!fileSuites.containsKey(fileId)) {
+                fileSuites.put(fileId, new FileSuite(fileId, servers.length, rValue, wValue));
+            }
+            while(fileSuites.get(fileId).isLocked()) {}
+            fileSuites.get(fileId).setLocked(true);
         }
     }
 
