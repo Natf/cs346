@@ -1,44 +1,39 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.PrintWriter;
+
 public class SuiteEntry
 {
     private int votes = 1;
-    private int versionNo = 1;
-    private boolean versionKnown = true;
-    private String data = "";
+    private String filename;
 
-    public SuiteEntry() {}
+    public SuiteEntry(int serverId, String id) {
+        this.filename = "./" + serverId + "/" + id + ".txt";
+    }
 
     public void write(String data) {
-        System.out.println("Writing " + data);
-        this.data = data;
-        versionKnown = true;
-        versionNo ++;
-    }
-
-    public int getVersionNo() {
-        return versionNo;
-    }
-
-    public void setVersionNo(int versionNo) {
-        this.versionNo = versionNo;
-    }
-
-    public boolean isVersionKnown() {
-        return versionKnown;
-    }
-
-    public void setVersionKnown(boolean versionKnown) {
-        this.versionKnown = versionKnown;
+        try {
+            PrintWriter writer = new PrintWriter(filename, "UTF-8");
+            writer.println(data);
+            writer.close();
+        } catch(Exception e) {
+            System.out.println(e);
+        }
     }
 
     public String read () {
-        return data;
+        String read ="";
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(filename));
+            read = in.readLine();
+            in.close();
+        } catch(Exception e) {
+            System.out.println(e);
+        }
+        return read;
     }
 
     public int getVotes() {
         return votes;
-    }
-
-    public void setVotes(int votes) {
-        this.votes = votes;
     }
 }

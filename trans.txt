@@ -1,2 +1,4 @@
 T[1,1]: begin(T1); X:=20;Write (X);Commit(T1);
 T[2,3]: begin(T2); Read(X);Commit(T2);
+T[3,2]: begin(T1); X:=30;Write (X);Commit(T1);
+T[4,4]: begin(T2); Read(X);Commit(T2);

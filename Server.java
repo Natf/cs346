@@ -1,14 +1,9 @@
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
-import java.net.SocketException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Server
 {
@@ -27,6 +22,7 @@ public class Server
 
         try {
             loadConfig();
+            serverLog = "./" + serverPort + "/ServerLog.txt";
         } catch (Exception e) {
             System.out.println(e);
             System.out.println("File reading error");
@@ -35,12 +31,6 @@ public class Server
 
         System.out.println("Initialising server on " + this.serverAddress + ":" + serverPort);
         this.serverSocket = new ServerSocket(serverPort, 10, InetAddress.getByName(this.serverAddress));
-    }
-
-    public void close() throws IOException, SocketException
-    {
-        System.out.println("Closing server");
-        serverSocket.close();
     }
 
     private void loadConfig() throws FileNotFoundException, IOException
@@ -68,29 +58,6 @@ public class Server
         bufferedReader.close();
     }
 
-    public void sendTransactions(Map<String, FileSuite> fileSuites, ArrayList<String> transactions) {
-        for(String transaction : transactions) {
-            doTransaction(fileSuites, parseTransaction(transaction));
-        }
-    }
-
-    private static ArrayList<String> parseTransaction(String instruction) {
-        ArrayList<String> transaction = new ArrayList<>();
-        Pattern regex = Pattern.compile("(\\[([0-9]|,)*\\])");
-        Matcher matcher = regex.matcher(instruction);
-
-        if (matcher.find()) {
-            transaction.add(matcher.group(0));
-        }
-
-        instruction = instruction.substring(instruction.indexOf(":")+1);
-        int i = 0;
-        for (String[] steps = instruction.split(";"); i < steps.length; i++) {
-            transaction.add(steps[i].trim());
-        }
-        return transaction;
-    }
-
     public String doTransaction(Map<String, FileSuite> fileSuites, ArrayList<String> transaction) {
         String read = "";
         String data = "";
@@ -102,7 +69,6 @@ public class Server
             } else if(transaction.get(i).contains("Read")) {
                 String fileId = transaction.get(i).substring(transaction.get(i).indexOf("(") + 1, transaction.get(i).indexOf(")"));
                 read += read(fileSuites, fileId);
-                System.out.println("read: " + read);
             } else {
                 data += transaction.get(i);
             }
@@ -112,17 +78,36 @@ public class Server
 
     public String read(Map<String, FileSuite> fileSuites, String fileId) {
         if (!fileSuites.containsKey(fileId)) {
-            fileSuites.put(fileId, new FileSuite(serverCount, rValue, wValue));
+            fileSuites.put(fileId, new FileSuite(fileId, serverCount, rValue, wValue));
         }
-        return fileSuites.get(fileId).read();
+        while(fileSuites.get(fileId).isLocked()) {
+
+        }
+        String value = fileSuites.get(fileId).read();
+        this.log("Reading from " + fileId + ", " + value);
+        return value;
     }
 
     public void write(Map<String, FileSuite> fileSuites, String fileId, String data, String transaction) {
         if (!fileSuites.containsKey(fileId)) {
-            fileSuites.put(fileId, new FileSuite(serverCount, rValue, wValue));
+            fileSuites.put(fileId, new FileSuite(fileId, serverCount, rValue, wValue));
         }
+        fileSuites.get(fileId).setLocked(true);
         String variable = transaction.substring(transaction.indexOf("(") + 1, transaction.indexOf(")")).trim();
         String value = data.substring(data.indexOf(variable) + variable.length() + 2).trim();
+        this.log("Writing to " + fileId + ", value " + value);
         fileSuites.get(fileId).write(value);
+        fileSuites.get(fileId).setLocked(false);
+    }
+
+    private void log(String string) {
+        try {
+            PrintWriter writer = new PrintWriter(new FileOutputStream(new File(serverLog), true ));
+            Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+            writer.println(timestamp + " : " + string);
+            writer.close();
+        } catch(Exception e) {
+            System.out.println(e);
+        }
     }
 }

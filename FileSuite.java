@@ -1,19 +1,19 @@
-import java.util.ArrayList;
+import java.util.*;
 
 public class FileSuite
 {
     private SuiteEntry[] suites;
-    private int currentVersion = 1;
+    private boolean locked = false;
     private int rValue;
     private int wValue;
 
-    public FileSuite(int serverCount, int rValue, int wValue) {
+    public FileSuite(String fileId, int serverCount, int rValue, int wValue) {
         this.rValue = rValue;
         this.wValue = wValue;
 
         suites = new SuiteEntry[serverCount];
         for (int i = 0; i < serverCount; i++) {
-            suites[i] = new SuiteEntry();
+            suites[i] = new SuiteEntry(9030 + i, fileId);
         }
     }
 
@@ -24,12 +24,10 @@ public class FileSuite
 
         while (true) {
             for(int i = 0; i < index.length; i++) {
-                if (index[i].isVersionKnown()) {
-                    quorum.add(index[i]);
-                    votes += index[i].getVotes();
-                    if (votes > rValue) {
-                        return quorum;
-                    }
+                quorum.add(index[i]);
+                votes += index[i].getVotes();
+                if (votes > rValue) {
+                    return quorum;
                 }
             }
         }
@@ -40,23 +38,15 @@ public class FileSuite
             ArrayList<SuiteEntry> list = new ArrayList<>();
             int readVotes = 0;
             for (SuiteEntry suite : suites) {
-                if (suite.isVersionKnown()) {
-                    readVotes += suite.getVotes();
-                    if (suite.getVersionNo() == currentVersion) {
-                        list.add(suite);
-                        if (readVotes >= wValue) {
-                            currentVersion++;
-                            return list;
-                        }
-                    }
+                readVotes += suite.getVotes();
+                list.add(suite);
+                if (readVotes >= wValue) {
+                    return list;
                 }
             }
             if (readVotes > rValue) {
                 for (SuiteEntry suite : suites) {
-                    if (suite.getVersionNo() != currentVersion) {
-                        suite.setVersionKnown(false);
                         // do copy
-                    }
                 }
             }
         }
@@ -66,12 +56,26 @@ public class FileSuite
         ArrayList<SuiteEntry> quorum = collectWriteQuorum();
 
         for (int i = 0; i < quorum.size(); i++) {
-            quorum.get(i).write(data); // not sure where this is found
+            quorum.get(i).write(data);
         }
+
+        Set<SuiteEntry> quorumSet = new HashSet<>();
+        quorumSet.addAll(quorum);
+        Set<SuiteEntry> suiteSet = new HashSet<>();
+        suiteSet.addAll(Arrays.asList(suites));
+        quorumSet.removeAll(suiteSet);
     }
 
     public String read() {
         ArrayList<SuiteEntry> quorum = collectReadQuorum();
-        return quorum.get(0).read(); // not sure where this is found
+        return quorum.get(0).read();
+    }
+
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
     }
 }

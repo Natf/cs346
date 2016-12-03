@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RunProject
 {
@@ -12,7 +14,6 @@ public class RunProject
     private static Server[] servers;
     private static Map<String, FileSuite> fileSuites = new LinkedHashMap<>();
     private static ArrayList<String> instructions;
-    private static ArrayList<String>[] serverInstructions;
     private static int rValue;
     private static int wValue;
 
@@ -33,19 +34,42 @@ public class RunProject
             System.out.println("An error occurred loading transactions: " + e);
         }
 
-        System.out.println(instructions);
-        System.out.println(servers.length);
-
-        for(int i = 0; i < servers.length; i++) {
-            System.out.println("sending transactions to server " + i);
-            final int server = i;
+        for(int i = 0; i < instructions.size(); i++) {
+            ArrayList<String> transaction = parseTransaction(instructions.get(i));
+            final int server = Integer.parseInt(transaction.get(0).substring(transaction.get(0).indexOf(",") + 1, transaction.get(0).indexOf("]"))) -1;
+            if(instructions.get(i).contains("Write")) {
+                String fileId = instructions.get(i).substring(instructions.get(i).indexOf("Write"));
+                fileId = fileId.substring(fileId.indexOf("(") + 1, fileId.indexOf(")")).trim();
+                if (!fileSuites.containsKey(fileId)) {
+                    fileSuites.put(fileId, new FileSuite(fileId, servers.length, rValue, wValue));
+                }
+                while(fileSuites.get(fileId).isLocked()) {}
+                fileSuites.get(fileId).setLocked(true);
+            }
             Thread thread = new Thread() {
                 public void run() {
-                    servers[server].sendTransactions(fileSuites, serverInstructions[server]);
+                    servers[server].doTransaction(fileSuites, transaction);
                 }
             };
             thread.start();
         }
+    }
+
+    private static ArrayList<String> parseTransaction(String instruction) {
+        ArrayList<String> transaction = new ArrayList<>();
+        Pattern regex = Pattern.compile("(\\[([0-9]|,)*\\])");
+        Matcher matcher = regex.matcher(instruction);
+
+        if (matcher.find()) {
+            transaction.add(matcher.group(0));
+        }
+
+        instruction = instruction.substring(instruction.indexOf(":")+1);
+        int i = 0;
+        for (String[] steps = instruction.split(";"); i < steps.length; i++) {
+            transaction.add(steps[i].trim());
+        }
+        return transaction;
     }
 
     private static void startServers(int serverCount) throws IOException {
@@ -70,16 +94,6 @@ public class RunProject
 
         for (String instruction = reader.readLine(); instruction != null; instruction = reader.readLine()) {
             instructions.add(instruction);
-        }
-
-        serverInstructions = new ArrayList[servers.length];
-        for(int i = 0; i < servers.length; i++) {
-            serverInstructions[i] = new ArrayList<>();
-        }
-
-        for (String instruction : instructions) {
-            int site = Integer.parseInt(instruction.substring(instruction.indexOf(',') + 1, instruction.indexOf(']'))) - 1;
-            serverInstructions[site].add(instruction);
         }
     }
 }
