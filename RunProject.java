@@ -21,8 +21,9 @@ public class RunProject
     public static void main(String[] args) throws IOException
     {
         if (args.length > 0 ) {
-            setRWValues();
-            startServers(Integer.parseInt(args[0]));
+            int NumServers = Integer.parseInt(args[0]);
+            setRWValues(NumServers);
+            startServers(NumServers);
         } else {
             String[] noServers = {"4"};
             main(noServers);
@@ -87,11 +88,31 @@ public class RunProject
         }
     }
 
-    private static void setRWValues() {
-        System.out.print("Please enter a value for Qr:");
-        rValue = Integer.parseInt(in.nextLine());
-        System.out.print("Please enter a value for Qw:");
-        wValue = Integer.parseInt(in.nextLine());
+    private static void setRWValues(int quorumlimit) {
+        boolean Qvalid = false;
+        String QrString = "Please enter a value for Qr:";
+        String QwString = "Please enter a value for Qw:";
+        while(!Qvalid) {
+        System.out.print(QrString);
+        int rEntry = Integer.parseInt(in.nextLine());
+        if (rEntry <= quorumlimit){
+        rValue = rEntry;
+        Qvalid = true;
+        }
+        else QrString = "Invalid value for Qr. Qr cannot exceed number of servers. Please enter a valid value for Qr:";
+        }
+        Qvalid = false;
+        while(!Qvalid) {
+        System.out.print(QwString);
+        int wEntry = Integer.parseInt(in.nextLine());
+        if (wEntry <= quorumlimit){
+        wValue = wEntry;
+        Qvalid = true;
+        }
+        else QwString = "Invalid value for Qw. Qw cannot exceed number of servers. Please enter a valid value for Qw:";
+        }
+        
+        
     }
 
     private static void loadTransactions() throws IOException {
