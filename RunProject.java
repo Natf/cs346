@@ -95,7 +95,8 @@ public class RunProject
         while(!Qvalid) {
         System.out.print(QrString);
         int rEntry = Integer.parseInt(in.nextLine());
-        if (rEntry <= quorumlimit){
+        if (rEntry < 1){QrString = "Invalid value for Qr. Qr must be at least 1. Please enter a valid value for Qr:";}
+        else if (rEntry <= quorumlimit){
         rValue = rEntry;
         Qvalid = true;
         }
@@ -105,7 +106,8 @@ public class RunProject
         while(!Qvalid) {
         System.out.print(QwString);
         int wEntry = Integer.parseInt(in.nextLine());
-        if (wEntry <= quorumlimit){
+        if (wEntry < 1){QwString = "Invalid value for Qw. Qw must be at least 1. Please enter a valid value for Qw:";}
+        else if (wEntry <= quorumlimit){
         wValue = wEntry;
         Qvalid = true;
         }
