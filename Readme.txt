@@ -9,3 +9,5 @@ Then you will be requested to enter your Qr and Qw values
 The program will then run through the transactions in trans.txt and you will see the resulting data files and log files
 outputted in a seperate directory for each server. The directories are labelled after the ports that the servers are using.
 These are ports 9030-9039
+
+Finally you can edit the ip address that the servers will run on in the config.yml file. It's default is localhost
