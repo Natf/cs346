@@ -92,29 +92,29 @@ public class RunProject
         boolean Qvalid = false;
         String QrString = "Please enter a value for Qr:";
         String QwString = "Please enter a value for Qw:";
-        while(!Qvalid) {
-        System.out.print(QrString);
-        int rEntry = Integer.parseInt(in.nextLine());
-        if (rEntry < 1){QrString = "Invalid value for Qr. Qr must be at least 1. Please enter a valid value for Qr:";}
-        else if (rEntry <= quorumlimit){
-        rValue = rEntry;
-        Qvalid = true;
-        }
-        else QrString = "Invalid value for Qr. Qr cannot exceed number of servers. Please enter a valid value for Qr:";
+        while (!Qvalid) {
+            System.out.print(QrString);
+            int rEntry = Integer.parseInt(in.nextLine());
+            if (rEntry < 1) {
+                QrString = "Invalid value for Qr. Qr must be at least 1. Please enter a valid value for Qr:";
+            } else if (rEntry <= quorumlimit) {
+                rValue = rEntry;
+                Qvalid = true;
+            } else
+                QrString = "Invalid value for Qr. Qr cannot exceed number of servers. Please enter a valid value for Qr:";
         }
         Qvalid = false;
-        while(!Qvalid) {
-        System.out.print(QwString);
-        int wEntry = Integer.parseInt(in.nextLine());
-        if (wEntry < 1){QwString = "Invalid value for Qw. Qw must be at least 1. Please enter a valid value for Qw:";}
-        else if (wEntry <= quorumlimit){
-        wValue = wEntry;
-        Qvalid = true;
+        while (!Qvalid) {
+            System.out.print(QwString);
+            int wEntry = Integer.parseInt(in.nextLine());
+            if (wEntry < 1) {
+                QwString = "Invalid value for Qw. Qw must be at least 1. Please enter a valid value for Qw:";
+            } else if (wEntry <= quorumlimit) {
+                wValue = wEntry;
+                Qvalid = true;
+            } else
+                QwString = "Invalid value for Qw. Qw cannot exceed number of servers. Please enter a valid value for Qw:";
         }
-        else QwString = "Invalid value for Qw. Qw cannot exceed number of servers. Please enter a valid value for Qw:";
-        }
-        
-        
     }
 
     private static void loadTransactions() throws IOException {
